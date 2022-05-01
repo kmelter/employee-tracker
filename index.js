@@ -4,17 +4,17 @@ const db = require('./connection');
 
 const queryAllDepartments = async () => {
     let database = await db();
-    database.query('SELECT * FROM department', function (err, results) {
+    database.query('SELECT * FROM department;', function (err, results) {
         if (err) {
             console.log(err);
         }
-        console.log(results);
+        console.table(results);
     });
 }
 
 const queryAllRoles = async () => {
     let database = await db();
-    database.query('SELECT role.title, role.salary, department.name FROM role RIGHT JOIN department ON role.department_id = department.id', function (err, results) {
+    database.query('SELECT role.title, role.salary, department.name FROM role RIGHT JOIN department ON role.department_id = department.id;', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -24,7 +24,7 @@ const queryAllRoles = async () => {
 
 const queryAllEmployees = async () => {
     let database = await db();
-    database.query('SELECT employee.first_name, employee.last_name, role.title, role.salary, employee.manager_id FROM employee INNER JOIN role ON employee.role_id = role.id', function (err, results) {
+    database.query('SELECT employee.first_name, employee.last_name, role.title, role.salary, employee.manager_id FROM employee INNER JOIN role ON employee.role_id = role.id;', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -65,33 +65,19 @@ const addRole = async () => {
     const departmentNameArray = [];
 
 
-    database.query('SELECT * FROM department', function (err, results) {
+    database.query('SELECT * FROM department;', function (err, results) {
         
         if (err) {
             console.log(err);
         }
         
         departmentArrayRaw = results;
-        console.log(departmentArrayRaw);
-    
         
         departmentArrayRaw.forEach((element) => {
             let departmentRaw = JSON.stringify(element);
             departmentSliced = departmentRaw.slice(16, -2);
             departmentNameArray.push(departmentSliced);
         })
-
-        console.log(departmentNameArray);
-
-        // for (let i = 1; i < departmentArrayRaw.length + 1; i++) {
-        //     database.query(`SELECT name FROM department WHERE id = ${i}`, function (err, results) {
-        //         if (err) {
-        //             console.log(err);
-        //         }
-        //         departmentNameArray.push(results);
-        //     });
-        // }
-        // console.log(departmentNameArray);
     });
 
 
@@ -117,25 +103,157 @@ const addRole = async () => {
 
     const answers = await inquirer.prompt(prompt);
 
-    let chosenDepartmentId = database.query(`SELECT id FROM department WHERE name IN ('${answers.departmentChoice}')`, function (err, results) {
+    database.query(`SELECT id FROM department WHERE name IN ('${answers.departmentChoice}');`, function (err, results) {
         if (err) {
             console.log(err);
         }
-        return results;
+        
+        let resultString = JSON.stringify(results);
+        let chosenDepartmentId = resultString.slice(7, -2);
+
+        //console.log(chosenDepartmentId);
+
+        database.query(`INSERT INTO role (title, salary, department_id)
+                    VALUES
+                        ('${answers.title}', ${answers.salary}, ${chosenDepartmentId});`, function (err, results) {
+            if (err) {
+                console.log(err);
+            }
+            console.log('Role added');
+        });
+    });
+}
+
+const addEmployee = async () => {
+    
+    let database = await db();
+
+    let roleArrayRaw = [];
+    const roleNameArray = [];
+    
+    let firstNameArrayRaw = [];
+    let lastNameArrayRaw = [];
+    const empFirstNameArray = [];
+    const empLastNameArray = [];
+    const empFullNameArray = [];
+
+    let chosenRoleId = '';
+    let chosenManagerId = '';
+
+    database.query('SELECT title FROM role', function (err, results) {
+        
+        if (err) {
+            console.log(err);
+        }
+        
+        roleArrayRaw = results;
+        
+        roleArrayRaw.forEach((element) => {
+            let roleRaw = JSON.stringify(element);
+            roleSliced = roleRaw.slice(10, -2);
+            roleNameArray.push(roleSliced);
+        })
+        //console.log(roleNameArray);
     });
 
-    console.log(chosenDepartmentId);
-
-    // database.query(`INSERT INTO role (title, salary, department_id)
-    //             VALUES
-    //                 ('${answers.title}', ${answers.salary}, ${chosenDepartmentId})`, function (err, results) {
+    // database.query('SELECT first_name FROM employee', function (err, results) {
+        
     //     if (err) {
     //         console.log(err);
     //     }
-    //     return results;
+    //     //console.log(results);
+    //     firstNameArrayRaw = results;
+        
+    //     firstNameArrayRaw.forEach((element) => {
+    //         let firstRaw = JSON.stringify(element);
+    //         firstSliced = firstRaw.slice(15, -2);
+    //         empFirstNameArray.push(firstSliced);
+    //     })
+    //     //console.log(empFirstNameArray);
     // });
+
+    database.query('SELECT last_name FROM employee;', function (err, results) {
+        
+        if (err) {
+            console.log(err);
+        }
+        //console.log(results);
+        lastNameArrayRaw = results;
+        
+        lastNameArrayRaw.forEach((element) => {
+            let lastRaw = JSON.stringify(element);
+            lastSliced = lastRaw.slice(14, -2);
+            empLastNameArray.push(lastSliced);
+        })
+        //console.log(empLastNameArray);
+    });
+
+
+
+    const prompt = [
+        {
+            type: 'input',
+            name: 'first',
+            message: "What is the employee's first name?"
+        },
+        {
+            type: 'input',
+            name: 'last',
+            message: "What is the employee's last name?"
+        },
+        {
+            type: 'list',
+            name: 'employee_role',
+            message: "What is the employee's role?",
+            choices: roleNameArray
+        },
+        {
+            type: 'list',
+            name: 'employee_manager',
+            message: "Who is the employee's manager?",
+            choices: empLastNameArray
+        }
+    ]
+
+    const answers = await inquirer.prompt(prompt);
+
+    //console.log(answers);
+
+    database.query(`SELECT id FROM role WHERE title IN ('${answers.employee_role}');`, function(err, results) {
+        if (err) {
+            console.log(err);
+        }
+
+        let resultString = JSON.stringify(results);
+        chosenRoleId = resultString.slice(7, -2);
+
+        console.log(chosenRoleId);
+    
+    
+        database.query(`SELECT id FROM employee WHERE last_name IN ('${answers.employee_manager}');`, function(err, results) {
+            if (err) {
+                console.log(err);
+            }
+
+            let resultString = JSON.stringify(results);
+            chosenManagerId = resultString.slice(7, -2);
+
+            console.log(chosenManagerId);
+    
+        
+            database.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answers.first}', ${answers.last}, ${chosenRoleId}, ${chosenManagerId});`, function (err, results) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log('Employee added');
+            });
+        });
+    });
 }
 
+const updateEmployee = async () => {
+    console.log('here');
+}
 
 const actionsPrompt = async () => {
     const prompt = [
@@ -143,13 +261,11 @@ const actionsPrompt = async () => {
             type: 'list',
             name: 'initialAction',
             message: 'What would you like to do?',
-            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee']
+            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee', 'Quit']
         }
     ]
 
     const answer = await inquirer.prompt(prompt);
-
-    console.log(answer);
 
     if (answer.initialAction === 'View all departments') {
         queryAllDepartments();
@@ -161,9 +277,13 @@ const actionsPrompt = async () => {
         addDepartment();
     } else if (answer.initialAction === 'Add a role') {
         addRole();
+    } else if (answer.initialAction === 'Add an employee') {
+        addEmployee();
+    } else if (answer.initialAction === 'Update an employee') {
+        updateEmployee();
+    } else if (answer.initialAction === 'Quit') {
+        return;
     }
-
-    
 }
 
 const initApp = async() => {
