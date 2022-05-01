@@ -1,5 +1,5 @@
 const inquirer = require('inquirer');
-const mysql = require('mysql2');
+const cTable = require('console.table');
 const db = require('./connection');
 
 const queryAllDepartments = async () => {
@@ -18,17 +18,17 @@ const queryAllRoles = async () => {
         if (err) {
             console.log(err);
         }
-        console.log(results);
+        console.table(results);
     });
 }
 
 const queryAllEmployees = async () => {
     let database = await db();
-    database.query('SELECT * FROM employee', function (err, results) {
+    database.query('SELECT employee.first_name, employee.last_name, role.title FROM employee RIGHT JOIN role ON employee.role_id = role.id', function (err, results) {
         if (err) {
             console.log(err);
         }
-        console.log(results);
+        console.table(results);
     });
 }
 
