@@ -1,22 +1,10 @@
-const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const cTable = require('console.table');
-
-// Connect to database
-const db = mysql.createConnection(
-    {
-      host: 'localhost',
-      // MySQL username,
-      user: 'root',
-      // MySQL password
-      password: '',
-      database: 'tracker'
-    },
-    console.log(`Connected to the tracker database.`)
-);
+const mysql = require('mysql2');
+const db = require('./connection');
 
 const queryAllDepartments = async () => {
-    db.query('SELECT * FROM department', function (err, results) {
+    let database = await db();
+    database.query('SELECT * FROM department', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -25,7 +13,8 @@ const queryAllDepartments = async () => {
 }
 
 const queryAllRoles = async () => {
-    db.query('SELECT * FROM role', function (err, results) {
+    let database = await db();
+    database.query('SELECT role.title, role.salary, department.name FROM role RIGHT JOIN department ON role.department_id = department.id', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -34,7 +23,8 @@ const queryAllRoles = async () => {
 }
 
 const queryAllEmployees = async () => {
-    db.query('SELECT * FROM employee', function (err, results) {
+    let database = await db();
+    database.query('SELECT * FROM employee', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -53,7 +43,9 @@ const addDepartment = async () => {
 
     const answer = await inquirer.prompt(prompt);
 
-    db.query(
+    let database = await db();
+
+    database.query(
         `INSERT INTO department (name)
         VALUES
             ('${answer.departmentAdd}');`
@@ -66,9 +58,11 @@ const addDepartment = async () => {
 }
 
 const addRole = async () => {
+    let database = await db();
+    
     const departmentArray = [];
 
-    db.query('SELECT * FROM department', function (err, results) {
+    database.query('SELECT * FROM department', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -94,11 +88,18 @@ const addRole = async () => {
         }
     ]
 
+    const answers = await inquirer.prompt(prompt);
 
-    db.query(`INSERT INTO role (title, salary)
+    database.query(`INSERT INTO role (title, salary)
                 VALUES
-                    ('Manager', 100000),`)
+                    ('${answers.title}', ${answers.salary}, ${answers.departmentChoice})`, function (err, results) {
+        if (err) {
+            console.log(err);
+        }
+        return results;
+    });
 }
+
 
 const actionsPrompt = async () => {
     const prompt = [
@@ -114,25 +115,25 @@ const actionsPrompt = async () => {
 
     console.log(answer);
 
-    // if (answer.initialAction === 'View all departments') {
-    //     queryAllDepartments();
-    // } else if (answer.initialAction === 'View all roles') {
-    //     queryAllRoles();
-    // } else if (answer.initialAction === 'View all employees') {
-    //     queryAllEmployees();
-    // } else if (answer.initialAction === 'Add a department') {
-    //     addDepartment();
-    // } else if (answer.initialAction === 'Add a role') {
-    //     addRole();
-    // }
+    if (answer.initialAction === 'View all departments') {
+        queryAllDepartments();
+    } else if (answer.initialAction === 'View all roles') {
+        queryAllRoles();
+    } else if (answer.initialAction === 'View all employees') {
+        queryAllEmployees();
+    } else if (answer.initialAction === 'Add a department') {
+        addDepartment();
+    } else if (answer.initialAction === 'Add a role') {
+        addRole();
+    }
 
     
 }
 
-
-const initApp = async () => {
-    console.log('Welcome to Employee Tracker');
+const initApp = async() => {
+    console.log('What would you like to do?');
     actionsPrompt();
 }
 
 initApp();
+
