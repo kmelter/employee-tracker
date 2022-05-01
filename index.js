@@ -24,7 +24,7 @@ const queryAllRoles = async () => {
 
 const queryAllEmployees = async () => {
     let database = await db();
-    database.query('SELECT employee.first_name, employee.last_name, role.title FROM employee RIGHT JOIN role ON employee.role_id = role.id', function (err, results) {
+    database.query('SELECT employee.first_name, employee.last_name, role.title, role.salary, employee.manager_id FROM employee INNER JOIN role ON employee.role_id = role.id', function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -53,21 +53,48 @@ const addDepartment = async () => {
                 if (err) {
                     console.log(err);
                 }
-                console.log(results);
+                console.log('Department added');
     });
 }
 
 const addRole = async () => {
+
     let database = await db();
     
-    const departmentArray = [];
+    let departmentArrayRaw = [];
+    const departmentNameArray = [];
+
 
     database.query('SELECT * FROM department', function (err, results) {
+        
         if (err) {
             console.log(err);
         }
-        return results;
+        
+        departmentArrayRaw = results;
+        console.log(departmentArrayRaw);
+    
+        
+        departmentArrayRaw.forEach((element) => {
+            let departmentRaw = JSON.stringify(element);
+            departmentSliced = departmentRaw.slice(16, -2);
+            departmentNameArray.push(departmentSliced);
+        })
+
+        console.log(departmentNameArray);
+
+        // for (let i = 1; i < departmentArrayRaw.length + 1; i++) {
+        //     database.query(`SELECT name FROM department WHERE id = ${i}`, function (err, results) {
+        //         if (err) {
+        //             console.log(err);
+        //         }
+        //         departmentNameArray.push(results);
+        //     });
+        // }
+        // console.log(departmentNameArray);
     });
+
+
 
     const prompt = [
         {
@@ -84,20 +111,29 @@ const addRole = async () => {
             type: 'list',
             name: 'departmentChoice',
             message: 'Which department does the new role belong to?',
-            choices: departmentArray
+            choices: departmentNameArray
         }
     ]
 
     const answers = await inquirer.prompt(prompt);
 
-    database.query(`INSERT INTO role (title, salary)
-                VALUES
-                    ('${answers.title}', ${answers.salary}, ${answers.departmentChoice})`, function (err, results) {
+    let chosenDepartmentId = database.query(`SELECT id FROM department WHERE name IN ('${answers.departmentChoice}')`, function (err, results) {
         if (err) {
             console.log(err);
         }
         return results;
     });
+
+    console.log(chosenDepartmentId);
+
+    // database.query(`INSERT INTO role (title, salary, department_id)
+    //             VALUES
+    //                 ('${answers.title}', ${answers.salary}, ${chosenDepartmentId})`, function (err, results) {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     return results;
+    // });
 }
 
 
