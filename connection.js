@@ -19,7 +19,7 @@ const db = async() => {
       // MySQL username,
       user: 'root',
       // MySQL password
-      password: '11gm4B8!',
+      password: '',
       database: 'tracker'
     },
     console.log(`Connected to the tracker database.`)
