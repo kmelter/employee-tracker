@@ -111,11 +111,9 @@ const addRole = async () => {
         let resultString = JSON.stringify(results);
         let chosenDepartmentId = resultString.slice(7, -2);
 
-        //console.log(chosenDepartmentId);
-
         database.query(`INSERT INTO role (title, salary, department_id)
                     VALUES
-                        ('${answers.title}', ${answers.salary}, ${chosenDepartmentId});`, function (err, results) {
+                        ('${answers.title}', '${answers.salary}', '${chosenDepartmentId}');`, function (err, results) {
             if (err) {
                 console.log(err);
             }
@@ -177,7 +175,6 @@ const addEmployee = async () => {
         if (err) {
             console.log(err);
         }
-        //console.log(results);
         lastNameArrayRaw = results;
         
         lastNameArrayRaw.forEach((element) => {
@@ -185,7 +182,7 @@ const addEmployee = async () => {
             lastSliced = lastRaw.slice(14, -2);
             empLastNameArray.push(lastSliced);
         })
-        //console.log(empLastNameArray);
+        
     });
 
 
@@ -217,8 +214,6 @@ const addEmployee = async () => {
 
     const answers = await inquirer.prompt(prompt);
 
-    //console.log(answers);
-
     database.query(`SELECT id FROM role WHERE title IN ('${answers.employee_role}');`, function(err, results) {
         if (err) {
             console.log(err);
@@ -226,9 +221,6 @@ const addEmployee = async () => {
 
         let resultString = JSON.stringify(results);
         chosenRoleId = resultString.slice(7, -2);
-
-        console.log(chosenRoleId);
-    
     
         database.query(`SELECT id FROM employee WHERE last_name IN ('${answers.employee_manager}');`, function(err, results) {
             if (err) {
@@ -237,9 +229,6 @@ const addEmployee = async () => {
 
             let resultString = JSON.stringify(results);
             chosenManagerId = resultString.slice(7, -2);
-
-            console.log(chosenManagerId);
-    
         
             database.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answers.first}', '${answers.last}', ${chosenRoleId}, ${chosenManagerId});`, function (err, results) {
                 if (err) {
@@ -261,7 +250,7 @@ const updateEmployee = async () => {
             {
                 type: 'list',
                 name: 'updatedRole',
-                message: 'Which role do you want ot assign the selected employee?',
+                message: 'Which role do you want to assign the selected employee?',
                 choices: updateRoleArray
             }
         ]
@@ -300,7 +289,7 @@ const updateEmployee = async () => {
                 let updateRoleSlice = updatedRoleString.slice(10, -2);
                 updateRoleArray.push(updateRoleSlice);
             });
-            //console.log(updateRoleArray);
+            
             newRolePrompt(updateRoleArray, answerArray);
         });
     }
@@ -319,8 +308,6 @@ const updateEmployee = async () => {
         const answerString = JSON.stringify(answer);
         const answerSlice = answerString.slice(19, -2);
         const answerArray = answerSlice.split(" ");
-    
-        //console.log(answerArray);
 
         newRoleQuery(answerArray);
     }
@@ -347,7 +334,7 @@ const actionsPrompt = async () => {
             type: 'list',
             name: 'initialAction',
             message: 'What would you like to do?',
-            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee', 'Quit']
+            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee']
         }
     ]
 
@@ -367,15 +354,11 @@ const actionsPrompt = async () => {
         addEmployee();
     } else if (answer.initialAction === 'Update an employee') {
         updateEmployee();
-    } else if (answer.initialAction === 'Quit') {
-        return;
     }
 }
 
 const initApp = async() => {
-    console.log('What would you like to do?');
     actionsPrompt();
 }
 
 initApp();
-
