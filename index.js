@@ -347,7 +347,7 @@ const actionsPrompt = async () => {
             type: 'list',
             name: 'initialAction',
             message: 'What would you like to do?',
-            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee', 'Quit']
+            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee']
         }
     ]
 
@@ -367,16 +367,14 @@ const actionsPrompt = async () => {
         await addEmployee();
     } else if (answer.initialAction === 'Update an employee') {
         await updateEmployee();
-    } else if (answer.initialAction === 'Quit') {
-        return;
     }
-
-    await actionsPrompt();
 }
 
 const initApp = async() => {
-    console.log('What would you like to do?');
-    actionsPrompt();
+    while (true) {
+        console.log('What would you like to do?');
+        await actionsPrompt();
+    }
 }
 
 initApp();
