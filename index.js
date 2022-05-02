@@ -252,7 +252,94 @@ const addEmployee = async () => {
 }
 
 const updateEmployee = async () => {
-    console.log('here');
+    let database = await db();
+    const empNameArray = [];
+    const updateRoleArray = [];
+
+    const newRolePrompt = async (updateRoleArray, answerArray) => {
+        const prompt = [
+            {
+                type: 'list',
+                name: 'updatedRole',
+                message: 'Which role do you want ot assign the selected employee?',
+                choices: updateRoleArray
+            }
+        ]
+
+        const answer = await inquirer.prompt(prompt);
+
+        database.query(`SELECT id FROM role WHERE title IN ('${answer.updatedRole}')`, function(err, result) {
+            if (err) {
+                console.log(err);
+            }
+            const roleIdString = JSON.stringify(result);
+            const roleIdSlice = roleIdString.slice(7, -2); //roleIdSlice is an integer representing the id
+            database.query(`SELECT id FROM employee WHERE first_name IN ('${answerArray[0]}')`, function(err, result) {
+                if (err) {
+                    console.log(err);
+                }
+                const empIdString = JSON.stringify(result);
+                const empIdSlice = empIdString.slice(7, -2);
+                database.query(`UPDATE employee SET role_id = ${roleIdSlice} WHERE id = ${empIdSlice};`, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log(result);
+                    console.log('Employee updated');
+                });
+            });
+        });
+    }
+
+    const newRoleQuery = async (answerArray) => {
+        database.query(`SELECT title FROM role;`, function(err, result) {
+            if (err) {
+                console.log(err);
+            }
+            result.forEach((element) => {
+                let updatedRoleString = JSON.stringify(element);
+                let updateRoleSlice = updatedRoleString.slice(10, -2);
+                updateRoleArray.push(updateRoleSlice);
+            });
+            //console.log(updateRoleArray);
+            newRolePrompt(updateRoleArray, answerArray);
+        });
+    }
+
+    const updatePrompt = async (empNameArray) => {
+        const prompt = [
+            {
+                type: 'list',
+                name: 'employeeUpdate',
+                message: 'Which employee would you like to update?',
+                choices: empNameArray
+            }
+        ]
+        
+        const answer = await inquirer.prompt(prompt);
+        const answerString = JSON.stringify(answer);
+        const answerSlice = answerString.slice(19, -2);
+        const answerArray = answerSlice.split(" ");
+    
+        //console.log(answerArray);
+
+        newRoleQuery(answerArray);
+    }
+
+    database.query(`SELECT first_name, last_name FROM employee;`, function(err, results) {
+        if (err) {
+            console.log(err);
+        }
+        console.log(results);
+        results.forEach((element) => {
+            let empNameTemp = element.first_name.concat(" ", element.last_name);
+            empNameArray.push(empNameTemp);
+        })
+        updatePrompt(empNameArray);
+    })
+
+    
+    
 }
 
 const actionsPrompt = async () => {
