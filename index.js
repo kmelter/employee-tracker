@@ -354,22 +354,24 @@ const actionsPrompt = async () => {
     const answer = await inquirer.prompt(prompt);
 
     if (answer.initialAction === 'View all departments') {
-        queryAllDepartments();
+        await queryAllDepartments();
     } else if (answer.initialAction === 'View all roles') {
-        queryAllRoles();
+        await queryAllRoles();
     } else if (answer.initialAction === 'View all employees') {
-        queryAllEmployees();
+        await queryAllEmployees();
     } else if (answer.initialAction === 'Add a department') {
-        addDepartment();
+        await addDepartment();
     } else if (answer.initialAction === 'Add a role') {
-        addRole();
+        await addRole();
     } else if (answer.initialAction === 'Add an employee') {
-        addEmployee();
+        await addEmployee();
     } else if (answer.initialAction === 'Update an employee') {
-        updateEmployee();
+        await updateEmployee();
     } else if (answer.initialAction === 'Quit') {
         return;
     }
+
+    await actionsPrompt();
 }
 
 const initApp = async() => {
