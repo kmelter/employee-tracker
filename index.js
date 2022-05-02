@@ -241,7 +241,7 @@ const addEmployee = async () => {
             console.log(chosenManagerId);
     
         
-            database.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answers.first}', ${answers.last}, ${chosenRoleId}, ${chosenManagerId});`, function (err, results) {
+            database.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answers.first}', '${answers.last}', ${chosenRoleId}, ${chosenManagerId});`, function (err, results) {
                 if (err) {
                     console.log(err);
                 }
