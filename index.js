@@ -284,7 +284,6 @@ const updateEmployee = async () => {
                     if (err) {
                         console.log(err);
                     }
-                    console.log(result);
                     console.log('Employee updated');
                 });
             });
